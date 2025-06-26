@@ -1,0 +1,629 @@
+﻿@model SinalR.Models.ChatViewModel
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="chat-container">
+    <!-- Main Chat Area -->
+    @if (!string.IsNullOrEmpty(Model.ReceiverEmail))
+    {
+        <div class="chat-main">
+            <!-- Chat Header -->
+            @{
+                var currentContact = Model.Contacts.FirstOrDefault(c => c.ContactEmail == Model.ReceiverEmail);
+                var displayName = currentContact?.ContactName ?? Model.ReceiverEmail ?? "Select a Contact";
+            }
+
+            <div class="chat-header">
+                <div class="current-chat-user">
+                    <div class="user-avatar">
+                        @{
+                            string avatarName = displayName; // for header
+                            string headerAvatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(avatarName)}&background=ff6600&color=ffffff";
+                        }
+                        <img src="@headerAvatarUrl" alt="User Avatar" />
+
+                        <span class="status-indicator online"></span>
+                    </div>
+                    <div class="user-info">
+                        <h3 class="user-name">@displayName</h3>
+                        <p class="user-status"></p> <!-- You can make this dynamic if you have online tracking -->
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="action-btn"><i class="fas fa-phone"></i></button>
+                    <button class="action-btn"><i class="fas fa-video"></i></button>
+                    <button class="action-btn"><i class="fas fa-ellipsis-v"></i></button>
+                </div>
+            </div>
+
+
+            <!-- Messages Container -->
+            <div class="messages-container">
+                <div class="date-divider">Today</div>
+
+                @if (Model.Messages != null && Model.Messages.Any())
+                {
+                    foreach (var msg in Model.Messages)
+                    {
+                        var isSent = msg.SenderEmail == Model.SenderEmail;
+                        <div class="message @(isSent ? "sent" : "received")">
+                            @if (!isSent)
+                            {
+                                <div class="message-avatar">
+                                    @{
+                                        string avatarName2 = msg.SenderEmail;
+                                        string messageAvatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(avatarName2)}&background=ff6600&color=ffffff";
+                                    }
+                                    <img src="@messageAvatarUrl" alt="User Avatar" />
+
+
+                               </div>
+                            }
+                            <div class="message-content">
+                                <div class="message-bubble">
+                                    <p>@msg.Content</p>
+                                </div>
+
+                                <span class="message-time">@msg.Timestamp.ToShortTimeString()</span>
+                                @if (isSent)
+                                {
+                                    <span class="message-time">@{
+
+
+                                            string Option = "";
+
+                                            if (msg.IsSeen != false)
+                                            {
+                                                Option = "Seen";
+                                            }
+                                            else if (msg.IsDelivered == true)
+                                            {
+                                                Option = "Sent";
+
+                                            }
+                                            else
+                                            {
+                                                Option = "Not Sent";
+                                            }
+                                        }
+                                        @(Option)
+                                    </span>
+                                }
+
+
+
+                        </div>
+                    </div>
+                }
+            }
+            else if (!string.IsNullOrEmpty(Model.ReceiverEmail))
+            {
+                <p class="nmd" style="text-align:center; margin-top: 20px;">No messages yet.</p>
+            }
+        </div>
+
+
+        <!-- Message Input -->
+        <div class="message-input-container">
+            <button class="input-action-btn"><i class="fas fa-paperclip"></i></button>
+            <div class="message-input">
+                <input type="text" placeholder="Type a message..." id="message-input">
+                <button class="emoji-btn"><i class="far fa-smile"></i></button>
+            </div>
+            <button class="send-btn" id="send-message"><i class="fas fa-paper-plane"></i></button>
+        </div>
+        </div>
+    
+    
+    }
+    else
+    {
+        <div class="chat-main">
+            <!-- Chat Header -->
+            @{
+                var currentContact = Model.Contacts.FirstOrDefault(c => c.ContactEmail == Model.ReceiverEmail);
+                var displayName = currentContact?.ContactName    ?? Model.ReceiverEmail ?? "Select a Contact";
+            }
+
+            <div class="chat-header">
+             
+             
+            </div>
+
+
+            <!-- Messages Container -->
+            <div class="messages-containerr">
+                <div class="date-divider">Please Select a Contact</div>
+           
+                @if (Model.Messages != null && Model.Messages.Any())
+                {
+                    foreach (var msg in Model.Messages)
+                    {
+                        var isSent = msg.SenderEmail == Model.SenderEmail;
+                        <div class="message @(isSent ? "sent" : "received")">
+                            @if (!isSent)
+                            {
+                                <div class="message-avatar">
+                                    <img src="https://ui-avatars.com/api/?name=@msg.SenderEmail&background=random" alt="User Avatar">
+                                </div>
+                            }
+                            <div class="message-content">
+                                <div class="message-bubble">
+                                  
+                                </div>
+                                <span class="message-time">@msg.Timestamp.ToShortTimeString()</span>
+                                @if (isSent)
+                                {
+                                    <span class="message-time">@((msg.IsDelivered == true) ? "Sent" : "Not Sent")</span>
+                                }
+
+                            </div>
+                        </div>
+                    }
+                }
+                else if (!string.IsNullOrEmpty(Model.ReceiverEmail))
+                {
+                    <p class="nmd" style="text-align:center; margin-top: 20px;">No messages yet.</p>
+                }
+            </div>
+
+
+            <!-- Message Input -->
+            <div class="message-input-container">
+                <button class="input-action-btn"><i class="fas fa-paperclip"></i></button>
+                <div class="message-input">
+                </div>
+
+            </div>
+        </div>
+    }
+
+
+    <!-- Contacts Sidebar -->
+    <div class="contacts-sidebar">
+        <div class="sidebar-header">
+            <h2>Contacts</h2>
+            <div class="search-container">
+                <input type="text" placeholder="Search contacts...">
+                <i class="fas fa-search"></i>
+            </div>
+            <button class="add-contact-btn" id="add-contact-btn">
+                <i class="fas fa-user-plus"></i> Add Contact
+            </button>
+        </div>
+
+            <div class="contacts-list">
+                @foreach (var contact in Model.Contacts)
+                {
+                    <a href="@Url.Action("Index", "Home", new { sender = contact.UserEmail, receiver = contact.ContactEmail })" class="contact-item-link">
+                        <div class="contact-item" data-sender="@contact.UserEmail" data-email="@contact.ContactEmail">
+                            <div class="contact-avatar">
+
+                                <img src="https://ui-avatars.com/api/?name=@contact.ContactName&background=random" alt="@contact.ContactName">
+                            </div>
+                            <div class="contact-info">
+                                <div class="contact-name-time">
+                                    <h4>@contact.ContactName</h4>
+                         
+                                    <span class="last-message-time">@contact.LastMessageTime?.ToString("hh:mm tt")</span>
+                                </div>
+                                <div class="last-message">
+                                    <p class="para">@contact.LastMessage</p>
+                                    @if (contact.UnseenCount > 0)
+                                    {
+                                        <span class="msg-badge">@contact.UnseenCount</span>
+                                    }
+
+                                <a class="optionss" href="javascript:void(0);">:</a>
+
+                                <div class="options-menu hidden">
+                                    <ul>
+                                        <li onclick="handleEdit()">Edit</li>
+                                        <a href="@Url.Action("DeleteContact", "Contact", new { sender = contact.UserEmail, receiver = contact.ContactEmail })"    
+                                           class="contact-item-link"
+                                           onclick="return handleDelete(event)">
+                                        <li>Delete</li>
+                </a>
+                                        
+                                        <li onclick="handleBlock()">Block</li>
+                                    </ul>
+                                </div>
+
+                
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+
+
+        </div>
+</div>
+
+
+<!-- Add Contact Modal -->
+<div class="modal" id="add-contact-modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Add New Contact</h2>
+        <form asp-controller="Contact" asp-action="AddContact" method="post" id="add-contact-form">
+            <div class="form-group">
+                <label for="contact-name">Name</label>
+                <input type="text" id="contact-name" name="ContactName" required>
+            </div>
+            <div class="form-group">
+                <label for="contact-email">Email</label>
+                <input type="email" id="contact-email" name="ContactEmail" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="cancel-btn">Cancel</button>
+                <button type="submit" class="submit-btn">Add Contact</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+    @Html.Raw("<script src='https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.js'></script>")
+<script>
+    const modal = document.getElementById("add-contact-modal");
+    const openBtn = document.getElementById("add-contact-btn"); // ✅ your button
+    const closeBtn = document.querySelector(".close-modal");
+    const cancelBtn = document.querySelector(".cancel-btn");
+
+    // Show modal
+    openBtn.addEventListener("click", () => {
+        modal.style.display = "block";
+    });
+
+    // Close modal on close icon
+    closeBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    // Close modal on cancel button
+    cancelBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    // Close modal if clicked outside the modal content
+    window.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.optionss').forEach(optionButton => {
+        optionButton.addEventListener('click', function (e) {
+          e.preventDefault();
+
+          // Close other open menus
+          document.querySelectorAll('.options-menu').forEach(menu => menu.classList.add('hidden'));
+
+          // Toggle this one
+          const menu = this.nextElementSibling;
+          menu.classList.toggle('hidden');
+        });
+      });
+
+      // Close menu if you click outside
+      document.addEventListener('click', function (e) {
+        if (!e.target.matches('.optionss')) {
+          document.querySelectorAll('.options-menu').forEach(menu => menu.classList.add('hidden'));
+        }
+      });
+    });
+
+    // Placeholder functions
+    function handleEdit() {
+      alert("Edit clicked");
+    }
+
+      function handleDelete(event) {
+      if (!confirm("Are you sure you want to delete this contact?")) {
+        event.preventDefault(); // Stop the link from navigating
+        return false;
+      }
+      return true; // Proceed with navigation
+    }
+
+    function handleBlock() {
+      alert("Block clicked");
+    }
+</script>
+
+
+        <script>
+
+
+                function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+        const myEmail = getQueryParam("sender");       
+
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub")
+            .build();
+
+          const receiverEmail = getQueryParam("receiver");
+
+    connection.start().then(() => {
+        markAsSeen();
+        clearUnseenCountFor(receiverEmail);
+
+        // Check if receiver is online
+            if (receiverEmail) {
+        connection.invoke("CheckIfUserOnline", receiverEmail);
+    }
+
+
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+
+
+
+    connection.on("ReceiveMessage", function (user, message) {
+        let contactItem = document.querySelector(`.contact-item[data-email="${user}"]`);
+
+        // If the user doesn't exist in the contact list, add it
+        if (!contactItem && user !== myEmail) {
+            const contactsList = document.querySelector(".contacts-list");
+
+            const newContactHtml = `
+                <a href="/Home/Index?sender=${myEmail}&receiver=${user}" class="contact-item-link">
+                    <div class="contact-item" data-sender="${myEmail}" data-email="${user}">
+                        <div class="contact-avatar">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user)}&background=random" alt="${user}">
+                        </div>
+                        <div class="contact-info">
+                            <div class="contact-name-time">
+                              <h4>${user.substring(0, 5)}</h4>
+                                <span class="last-message-time">${getCurrentTime()}</span>
+                            </div>
+                            <div class="last-message">
+                                <p class="para">${message}</p>
+                                <span class="msg-badge"></span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            `;
+
+            contactsList.insertAdjacentHTML('afterbegin', newContactHtml);
+        }
+
+        // Update message and time for existing contact
+        contactItem = document.querySelector(`.contact-item[data-email="${user}"]`);
+        
+        if (contactItem) {
+            const lastMessageEl = contactItem.querySelector(".last-message p");
+            const timeEl = contactItem.querySelector(".last-message-time");
+            if (lastMessageEl) lastMessageEl.textContent = message;
+            if (timeEl) timeEl.textContent = getCurrentTime();
+
+            // 🔥 Unseen Count Update
+            if (user !== receiverEmail) {
+                let badge = contactItem.querySelector(".msg-badge");
+                if (badge) {
+                    let count = parseInt(badge.textContent) || 0;
+                    badge.textContent = count + 1;
+                } else {
+                    const badgeEl = document.createElement("span");
+                    badgeEl.classList.add("msg-badge");
+                    badgeEl.textContent = "1";
+                    contactItem.querySelector(".last-message").appendChild(badgeEl);
+                }
+            }
+        }
+
+        // Show message only if it's from the selected contact
+        if (user === myEmail || user !== receiverEmail) return;
+        clearUnseenCountFor(user);
+        // Display the message in chat
+        const messagesContainer = document.querySelector(".messages-container");
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message", "received");
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user)}&background=random" alt="User Avatar">
+            </div>
+            <div class="message-content">
+                <div class="message-bubble">
+                    <p>${message}</p>
+                </div>
+                <span class="message-time">${getCurrentTime()}</span>
+            </div>
+        `;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        markAsSeen();
+    });
+
+
+        function clearUnseenCountFor(email) {
+        const contactItem = document.querySelector(`.contact-item[data-email="${email}"]`);
+        if (contactItem) {
+            const badge = contactItem.querySelector(".msg-badge");
+            if (badge) badge.remove();
+        }
+    }
+
+
+          
+        connection.on("MessageDelivered", function (receiverEmail, message, messageId) {
+        const statusSpan = document.getElementById(`${messageId}-status`);
+        if (statusSpan) {
+            statusSpan.textContent = "Sent";
+        }
+    });
+       
+   
+        connection.on("UserOnlineStatus", function(email, isOnline) {
+        if (email === receiverEmail) {
+            const statusText = document.querySelector(".user-status");
+            const statusIndicator = document.querySelector(".status-indicator");
+
+            if (isOnline) {
+
+                statusText.textContent = "Online";
+                  statusText.classList.add("online");
+    statusText.classList.remove("offline");
+
+                statusIndicator.classList.add("online");
+                statusIndicator.classList.remove("offline");
+            } else {
+
+                statusText.textContent = "Offline";
+                  statusText.classList.add("offline");
+    statusText.classList.remove("online");
+                statusIndicator.classList.add("offline");
+                statusIndicator.classList.remove("online");
+            }
+        }
+    });
+        connection.on("UserOnlineStatusChanged", function(email, isOnline) {
+        if (email === receiverEmail) {
+            const statusText = document.querySelector(".user-status");
+            const statusIndicator = document.querySelector(".status-indicator");
+
+            if (isOnline) {
+
+                statusText.textContent = "Online";
+                 statusText.classList.add("online");
+    statusText.classList.remove("offline");
+                statusIndicator.classList.add("online");
+                statusIndicator.classList.remove("offline");
+            } else {
+
+                statusText.textContent = "Offline";
+                  statusText.classList.add("offline");
+    statusText.classList.remove("online");
+                statusIndicator.classList.add("offline");
+                statusIndicator.classList.remove("online");
+            }
+        }
+    });
+
+
+        connection.on("MessagesSeen", function (receiverEmail) {
+        const statusSpans = document.querySelectorAll(`[id$="-status"]`);
+        statusSpans.forEach(span => {
+            if (span.textContent === "Sent") {
+                span.textContent = "Seen";
+            }
+        });
+    });
+
+        // Sending a message when clicking the send button
+                   document.getElementById("send-message").addEventListener("click", function (event) {
+        event.preventDefault();
+
+        const messageInput = document.getElementById("message-input");
+ 
+        const message = messageInput.value.trim();
+
+        if (message === "") return;
+        const receiverEmail = getQueryParam("receiver"); // ✅ use 'receiver' instead of 'email'
+            const messageId = "msg-" + Date.now();
+
+        
+
+        if (receiverEmail && receiverEmail.trim() !== "") {
+            connection.invoke("SendMessageToEmail", receiverEmail.trim(), message,messageId)
+                .catch(function (err) {
+                    console.error(err.toString());
+                });
+
+            // Show message in sender's chat window
+      
+            const messagesContainer = document.querySelector(".messages-container");
+          const messageDiv = document.createElement("div");
+            const abc= document.querySelectorAll(".nmd");
+            abc.forEach(el=>{el.style.display="none"});
+    messageDiv.classList.add("message", "sent");
+    messageDiv.id = messageId;
+
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            <div class="message-bubble">
+                <p>${message}</p>
+            </div>
+            <span class="message-time">${getCurrentTime()}</span>
+            <span class="message-time" id="${messageId}-status">Sending...</span>
+        </div>
+    `;
+    messagesContainer.appendChild(messageDiv);
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        messageInput.value = "";
+    });
+
+        const messageInput = document.getElementById("message-input");
+    let typingTimeout;
+
+    // Detect typing and send notification
+    messageInput.addEventListener("input", () => {
+        connection.invoke("Typing", receiverEmail).catch(err => console.error(err.toString()));
+
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            connection.invoke("StopTyping", receiverEmail).catch(err => console.error(err.toString()));
+        }, 1000); // Stops typing after 1 second of inactivity
+    });
+
+        connection.on("UserTyping", function(senderEmail) {
+        if (senderEmail === receiverEmail) {
+            const statusText = document.querySelector(".user-status");
+            statusText.textContent = "Typing...";
+        }
+    });
+
+    connection.on("UserStoppedTyping", function(senderEmail) {
+        if (senderEmail === receiverEmail) {
+            const statusText = document.querySelector(".user-status");
+            statusText.textContent = "Online";
+        }
+    });
+
+
+        // Helper function to get the current time in HH:MM AM/PM format
+        function getCurrentTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+            return `${hours}:${minutesStr} ${ampm}`;
+        }
+
+            function markAsSeen() {
+        const sender = getQueryParam("receiver"); // the person you're chatting with
+        if (!sender) return;
+
+        connection.invoke("MarkAsSeen", sender)
+            .catch(err => console.error(err.toString()));
+    }
+
+    </script>
+
+
+
