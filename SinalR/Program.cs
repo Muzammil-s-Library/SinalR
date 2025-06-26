@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SinalR.Areas.Identity.Data;
+
 namespace SinalR
 {
     public class Program
@@ -8,7 +9,7 @@ namespace SinalR
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            var connectionString = builder.Configuration.GetConnectionString("SDbContextConnection") ?? throw new InvalidOperationException("Connection string 'SDbContextConnection' not found.");;
+            var connectionString = builder.Configuration.GetConnectionString("SDbContextConnection") ?? throw new InvalidOperationException("Connection string 'SDbContextConnection' not found.");
 
             builder.Services.AddDbContext<SDbContext>(options => options.UseSqlServer(connectionString));
 
@@ -20,7 +21,12 @@ namespace SinalR
 
             // Add SignalR service
             builder.Services.AddSignalR();
+
             var app = builder.Build();
+
+            // Get port from environment variable or default to 8080
+            var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+            app.Urls.Add($"http://*:{port}");
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -33,7 +39,6 @@ namespace SinalR
             app.UseHttpsRedirection();
             app.UseRouting();
 
-       
             app.MapRazorPages();
             app.MapStaticAssets();
             app.MapControllerRoute(
@@ -45,8 +50,6 @@ namespace SinalR
             app.UseAuthorization();
 
             app.MapHub<ChatHub>("/chathub").RequireAuthorization();
-
-
 
             app.Run();
         }
